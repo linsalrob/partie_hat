@@ -36,6 +36,6 @@ Now our strain information looks something like this for a _Salmonella Typhimuri
 
 | PATRIC ID | Name | Tax ID | Kingdom | phylum | class | order | family | genus | species | strain |
 |---|---|---|---|---|---|---|---|---|---|--- |
-28901.1301 | Salmonella enterica strain CFSAN045023 | 28901 | Bacteria | Proteobacteria | Gammaproteobacteria | Enterobacterales | Enterobacteriaceae | Salmonella | Salmonella enterica | Salmonella enterica PATRIC|28901.1301
+| 28901.1301 | Salmonella enterica strain CFSAN045023 | 28901 | Bacteria | Proteobacteria | Gammaproteobacteria | Enterobacterales | Enterobacteriaceae | Salmonella | Salmonella enterica | Salmonella enterica PATRIC\|28901.1301
 
 Note that the species includes PATRIC|genomeid.
