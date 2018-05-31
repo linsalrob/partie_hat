@@ -39,3 +39,65 @@ Now our strain information looks something like this for a _Salmonella Typhimuri
 | 28901.1301 | Salmonella enterica strain CFSAN045023 | 28901 | Bacteria | Proteobacteria | Gammaproteobacteria | Enterobacterales | Enterobacteriaceae | Salmonella | Salmonella enterica | Salmonella enterica PATRIC&#124;28901.1301
 
 Note that the species includes PATRIC|genomeid.
+
+## Step 2. Rebuild the _k_-mer databases
+
+I edited focus to allow users to specify their own database locations by adding a -b tag. This means we can run focus.py in parallel and process a lot of genomes at once. There are a couple of options for this, but for this option I'm going to use a multicore machine and use 30 different processes.
+
+
+To create the focus databases, first, we rename the first column in the file to make it a pointer to a fasta file that we want to count k-mers for. We also use this opportunity to remove the extraneous columns from the file
+
+```
+perl -npe '@a=split /\t/; $a[0] = "\$HOME/PATRIC/fna/$a[0].fna"; splice(@a, 1, 3), $_=join("\t", @a)' patric_organisms_taxonomy_strain.tsv > files_to_process.txt
+```
+
+We now have a file called `files_to_process.txt` that has one entry per line that is only the filenames and taxa, including our new species designation. Note that to get here we used several intermediate files, if desired we could clean those up now. 
+
+I want to process these in parallel since I have a machine with lots of memory and lots of cores. In this case, I'm going to run 30 jobs simultaneously. 
+
+Let's start by splitting the input file, `files_to_process.txt` into 30 smaller files. It's easier if each of those has a numeric file name, and we want to ensure that the files are split by number of lines, rather than by number of bytes, so that each file starts and ends with a complete command. We use the `split` command for that:
+ 
+```
+split -d -l 2351 files_to_process.txt
+```
+
+This makes a series of files named x00, x01, x02, ... x28, x29.
+
+
+Because we are going to process everything simultaneously it is much easier if we move everything to its own directory. We can always concatenate everything later (and we will ...). Lets make 30 directories, move the split files into those directories and rename them to input (in their own directories we don't mind if they all have the same name), and while we're at it make the db directory that focus needs to add to the database. The last thing focus needs is the first line of the database that just contains the header information. We'll steal that from another focus database while we're at it.
+
+ 
+```
+for JOB in $(seq 1 30); do
+	mkdir $JOB;
+	mv x$JOB $JOB/input;
+	mkdir -p $JOB/output/db;
+	for K in 6 7 8; do
+		head -n 1 /usr/local/genome/focus/current/db/k$K > $JOB/output/db/k$K;
+	done;
+done
+```
+
+Notice that this did most of it, but there were a few errors. Split uses x00, x01, x02, ... and so we need to move those few files separately:
+
+```
+for JOB in $(seq 1 9); do mv x0$JOB $JOB/input; done
+```
+
+and finally the last one (just because I counted from 1 not 0 earlier):
+
+```
+mv x00 30/input
+```
+ 
+
+Now that we're all set with an input file, an output directory, and the basis of the _k_-mer database in each directory, we can run the same command each time. Note that I use the ampersand here to put the job in the background, but because I'm doing that in a _for_ loop I use echo to carry on.
+
+```
+CWD=$PWD; for JOB in $(seq 1 30); do cd $JOB; python2.7 ~/GitHubs/FOCUS/focus.py -b output/ -d input > stdout 2> stderr & echo $JOB; cd $CWD; done
+```
+
+We now have 30 instances of focus building us databases!
+
+```
+
