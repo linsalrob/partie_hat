@@ -40,9 +40,13 @@ Now our strain information looks something like this for a _Salmonella Typhimuri
 
 Note that the species includes PATRIC|genomeid.
 
-## Step 2. Rebuild the _k_-mer databases
+## Step 2. Make new _k_-mer databases for FOCUS
 
-I edited focus to allow users to specify their own database locations by adding a -b tag. This means we can run focus.py in parallel and process a lot of genomes at once. There are a couple of options for this, but for this option I'm going to use a multicore machine and use 30 different processes.
+We want to make a set of _k_-mer databases for [FOCUS](https://github.com/metageni/focus) that just have our well annotated bacteria in them.
+
+I edited focus to allow users to specify their own database locations by adding a -b tag. This means we can run focus.py in parallel and process a lot of genomes at once. There are a couple of options for this, but for this option I'm going to use a multicore machine and use 30 different processes. _[Note: I've created a GitHub pull request for this, but you can also use my fork of FOCUS]_
+
+By default, focus provides three different database sizes, _k_=6, _k_=7, and _k_=8. Each database has the first line dedicated to a header line, that has the taxonomic groups (kingdom, phylum, class, order, family, genus, species, and strain), and the remaining columns as the _k_-mer sequences. Then we have one entry per line that has the organism information and the counts associated with that organism. We can reuse the header lines from other files as necessary, and add our own organisms and counts to that file.
 
 
 To create the focus databases, first, we rename the first column in the file to make it a pointer to a fasta file that we want to count k-mers for. We also use this opportunity to remove the extraneous columns from the file
@@ -99,5 +103,23 @@ CWD=$PWD; for JOB in $(seq 1 30); do cd $JOB; python2.7 ~/GitHubs/FOCUS/focus.py
 
 We now have 30 instances of focus building us databases!
 
+### Combine the _k_-mer databases
+
+Once the processing is complete we need to combine the _k_-mer databases. Recall that each database has a header with the phylogenetic classification followed by the _k_-mer sequence, so we need to get that first. Then we can just concatenate the sequences from the partial databases. The order of the sequences in the databases doesn't matter.
+
 ```
+for K in 6 7 8; do echo $K; head -n 1 1/output/db/k$K > db/k$K; grep -hv ^Kingdom */output/db/k$K >> db/k${K}.full; done
+```
+
+Then we need to filter out entries that are all zero. There is no point in keeping them in the database and we don't need to parse them each time we load it. These entries exist when the fasta file for the genome doesn't exist.
+
+```
+for K in 6 7 8; do perl -ne 'if (/^Kingdom/) {print; next} @a=split /\t/; $c=0; map {$c+=$a[$_]} (9 .. $#a); print if ($c > 0)' db/k${K}.full > db/k$K; done
+```
+
+
+
+
+
+
 
