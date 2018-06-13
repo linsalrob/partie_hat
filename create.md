@@ -108,15 +108,42 @@ We now have 30 instances of focus building us databases!
 Once the processing is complete we need to combine the _k_-mer databases. Recall that each database has a header with the phylogenetic classification followed by the _k_-mer sequence, so we need to get that first. Then we can just concatenate the sequences from the partial databases. The order of the sequences in the databases doesn't matter.
 
 ```
-for K in 6 7 8; do echo $K; head -n 1 1/output/db/k$K > db/k$K; grep -hv ^Kingdom */output/db/k$K >> db/k${K}.full; done
+for K in 6 7 8; do echo $K; head -n 1 1/output/db/k$K > db/k$K; grep -hv ^Kingdom &#42;/output/db/k$K >> db/k${K}.full; done
 ```
 
 Then we need to filter out entries that are all zero. There is no point in keeping them in the database and we don't need to parse them each time we load it. These entries exist when the fasta file for the genome doesn't exist.
 
 ```
-for K in 6 7 8; do perl -ne 'if (/^Kingdom/) {print; next} @a=split /\t/; $c=0; map {$c+=$a[$_]} (9 .. $#a); print if ($c > 0)' db/k${K}.full > db/k$K; done
+for K in 6 7 8; do perl -ne 'if (/^Kingdom/) {print; next} @a=split /\t/; $c=0; map {$c+=$a[$&#95;]} (9 .. $#a); print if ($c > 0)' db/k${K}.full > db/k$K; done
 ```
 
+# Run FOCUS on a (some) metagenomes
+
+Finally, we want to run FOCUS on some of the metagenomes to predict what environment they came from.
+
+If we have a fastq file, we need to convert that to fasta, before we can start. For example, with a directory of fasta files, we can use:
+
+```
+for i in $(ls crAssphage&#95;fastq/); do echo $i; o=$(echo $i | sed -e 's/fastq.gz/fasta/'); gunzip -c crAssphage&#95;fastq/$i | fastq2fasta - crAssphage&#95;fasta/$o; done
+```
+
+and to run focus we can use one of two incantations:
+
+For a single fasta file, you can call it directly.
+
+For example:
+
+```
+python ~/GitHubs/FOCUS/focus.py  -b ./ -q crAssphage_fasta/SRR1462480_pass_2.fasta -m 0.00001
+```
+
+or for multiple fasta files in a directory you can run in STAMP mode, which creates tab-separated sheets with the output.
+
+For example:
+
+```
+python ~/GitHubs/FOCUS/focus.py  -b ./ -q crAssphage_fasta/ -m 0.00001
+```
 
 
 
