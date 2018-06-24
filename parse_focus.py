@@ -6,6 +6,7 @@ file with the matrix of counts.
 
 import os
 import sys
+import argparse
 import gzip
 import re
 
