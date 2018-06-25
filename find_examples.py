@@ -25,10 +25,11 @@ def read_environments(envf):
     return data
 
 
-def read_tsv(fname):
+def read_tsv(fname, nummgs):
     """
     Read the tsv file and return a dictionary
     :param fname: file name to read
+    :param nummgs: number of metagenomes to retain
     :return: dict of dicts
     """
 
@@ -36,11 +37,12 @@ def read_tsv(fname):
     with open(fname, 'r') as fin:
         l = fin.readline()
         header = l.strip().split("\t")
-        for i in range(1, len(header)):
+        choices = [randint(1, len(header)) for x in range(nummgs)]
+        for i in choices:
             data[header[i]] = {}
         for l in fin:
             p = l.strip().split("\t")
-            for i in range(1, len(header)):
+            for i in choices:
                 data[header[i]][p[0]] = p[i]
     return data
 
@@ -60,7 +62,8 @@ def count_environments(environ, mgs):
         for g in counts[m]:
             if g not in environ:
                 environ[g] = 'UNKNOWN'
-            counts[m].add(environ[g])
+            if float(counts[m][g]) > 0:
+                counts[m].add(environ[g])
         if len(counts[m]) == 1:
             sys.stderr.write("{} is only in {}\n".format(m, counts[m]))
         uniques.add(m)
@@ -122,7 +125,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Create a mini data set for development purposes")
     parser.add_argument('-f', help='tsv file of focus outputs', required=True)
     parser.add_argument('-e', help='environments file (probably patric_metadata_20180526_isolation_host_env.tsv', required=True)
-    parser.add_argument('-n', help='number of metagenomes to include, default=100', default=100, type=int)
+    parser.add_argument('-n', help='number of metagenomes to include, default=1000', default=1000, type=int)
     parser.add_argument('-o', help='output file to write', required=True)
     parser.add_argument('-v', help='verbose output', action="store_true")
     args = parser.parse_args()
