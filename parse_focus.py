@@ -23,34 +23,46 @@ def read_directory(focus_dir):
         if not f.endswith('_focus.txt.gz'):
             sys.stderr.write("Skipped: {}. It does not look like a compressed focus output file\n".format(f))
             continue
-        data[f]={}
-        gin = gzip.open(os.path.join("focus", f), 'rt')
-        cont = True
-        for l in gin:
-            if 'Others (abundance <' in gin:
-                continue
-            if not l.strip():
-                continue
-            if l.startswith("Strain Level"):
-                cont = False
-                continue
-            if cont:
-                continue
-            if l.startswith("Rank"):
-                continue
-            p=l.strip().split("\t")
-            if len(p) < 3:
-                sys.stderr.write("Too few args: {}\n".format(l))
-                continue
-            m=re.search("(PATRIC\|[\d\.]+)", p[1])
-            if not m:
-                sys.stderr.write("Can't parse {}\n".format(l))
-                continue
-            data[f.replace('_focus.txt.gz', '')][m.group(0)]=p[2]
-            allids.add(m.group(0))
+        sraid = f.replace('_focus.txt.gz', '')
+        data[sraid]={}
+        with gzip.open(os.path.join("focus", f), "rt") as gin:
+            cont = True
+            for l in gin:
+                if 'Others (abundance <' in l:
+                    continue
+                if not l.strip():
+                    continue
+                if l.startswith("Strain Level"):
+                    cont = False
+                    continue
+                if cont:
+                    continue
+                if l.startswith("Rank"):
+                    continue
+                p=l.strip().split("\t")
+                if len(p) < 3:
+                    sys.stderr.write("Too few args: {}\n".format(l))
+                    continue
+                m=re.search("(PATRIC\|[\d\.]+)", p[1])
+                if not m:
+                    sys.stderr.write("Can't parse {}\n".format(l))
+                    continue
+                data[sraid][m.group(0)]=p[2]
+                allids.add(m.group(0))
 
     return data, allids
 
+def check_ids(data, allids):
+    """
+    Check the data for some ids
+    """
+
+    ak = list(data.keys())
+    for i in range(10):
+        sys.stderr.write("{}".format(i))
+        for j in list(allids)[0:10]:
+            sys.stderr.write(" {}".format(data[ak[i]].get(j, '-')))
+        sys.stderr.write("\n")
 
 def write_output(data, allids, outputf):
     """
@@ -81,6 +93,7 @@ if __name__ == '__main__':
 
 
     data, allids = read_directory(args.d)
+    check_ids(data, allids)
     write_output(data, allids, args.o)
     
 
