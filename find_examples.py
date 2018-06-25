@@ -15,7 +15,7 @@ def read_environments(envf):
     """
 
     data = {}
-    with open(envf, 'r') as fin:
+    with open(envf, 'r', errors='ignore') as fin:
         for l in fin:
             if l.startswith('genome_id'):
                 continue
