@@ -17,15 +17,15 @@ def read_tsv(fname, nummgs):
 
     data = {}
     with open(fname, 'r') as fin:
-        header = fin.readline()
-        p=header.strip().split("\t")
-        choices = [randint(1, len(p)) for x in range(nummgs)]
+        l = fin.readline()
+        header = l.strip().split("\t")
+        choices = [randint(1, len(header)) for x in range(nummgs)]
         for i in choices:
-            data[choices[i]] = {}
+            data[header[i]] = {}
         for l in fin:
             p = l.strip().split("\t")
             for i in choices:
-                data[choices[i]][p[0]] = p[i]
+                data[header[i]][p[0]] = p[i]
     return data
 
 def clean_zeros(data):
@@ -39,13 +39,14 @@ def clean_zeros(data):
     mgs = list(data.keys())
     todelete = set()
     genomeids = data[mgs[0]].keys()
+    sys.stderr.write("Cleaning up. We have {} metagenomes and {} genome ids\n".format(len(mgs), len(genomeids)))
     for g in genomeids:
         total = 0
         for m in mgs:
             total += float(data[m][g])
         if 0 == total:
             todelete.add(g)
-    sys.stderr.write("deleting {} genome ids from {} total ids\n".format(len(todelete), len(todelete)))
+    sys.stderr.write("deleting {} genome ids from {} total ids\n".format(len(todelete), len(genomeids)))
 
     for m in mgs:
         for g in todelete:
@@ -62,12 +63,13 @@ def write_tsv(data, outputf):
     """
 
     mgs = data.keys()
+    genomes = data[list(mgs)[0]].keys()
     with open(outputf, 'w') as out:
         out.write("\t{}\n".format("\t".join(mgs)))
-        for d in data:
-            out.write(d)
+        for g in genomes:
+            out.write(g)
             for m in mgs:
-                out.write("\t{}".format(data[m][d]))
+                out.write("\t{}".format(data[m][g]))
             out.write("\n")
 
 
@@ -80,6 +82,6 @@ if __name__ == '__main__':
     parser.add_argument('-v', help='verbose output', action="store_true")
     args = parser.parse_args()
 
-    data = read_tsv(args.f)
+    data = read_tsv(args.f, args.n)
     data = clean_zeros(data)
     write_tsv(data, args.o)
