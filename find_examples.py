@@ -131,7 +131,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     envs = read_environments(args.e)
-    data = read_tsv(args.f)
+    data = read_tsv(args.f, args.n)
     envcounts, uniques = count_environments(envs, data)
     data = clean_zeros(data)
     write_tsv(data, args.o, uniques)
