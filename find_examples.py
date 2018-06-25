@@ -47,29 +47,40 @@ def read_tsv(fname, nummgs):
     return data
 
 
-def count_environments(environ, mgs):
+def count_environments(environ, data, minval):
     """
     Count the environments each metagenome is present in
     :param environ: the environments dict
-    :param mgs: the metagenomics data from read_tsv
+    :param data: the metagenomics data from read_tsv
+    :param minval: the minimum value (0 - 100) to save that sample
     :return: a hash of the metagenomes and the environments they are in, and a set of the uniques
     """
 
     counts = {}
     uniques = set()
     for m in data:
-        counts[m] = set()
-        for g in counts[m]:
+        counts[m] = {}
+        for g in data[m]:
             if g not in environ:
                 environ[g] = 'UNKNOWN'
-            if float(counts[m][g]) > 0:
-                counts[m].add(environ[g])
-        if len(counts[m]) == 1:
-            sys.stderr.write("{} is only in {}\n".format(m, counts[m]))
-        uniques.add(m)
+            if float(data[m][g]) > 0:
+                counts[m][environ[g]] = counts[m].get(environ[g], 0) + float(data[m][g])
+        if max(counts[m].values())> minval:
+            sys.stderr.write("The most abundant env for {} is {}\n".format(m, max(counts[m].values())))
+            uniques.add(m)
 
     return counts, uniques
 
+
+def filter_by_count(data, uniques):
+    """
+    Filter the data to retain only those in uniques
+    :param data: the dict of tsv
+    :param uniques: the ones to filter
+    :return: a modified dict
+    """
+
+    return {x:data[x] for x in uniques}
 
 def clean_zeros(data):
     """
@@ -97,19 +108,30 @@ def clean_zeros(data):
     return data
 
 
-def write_tsv(data, outputf, towrite=None):
+def write_envs(counts, countf):
+    """
+    Write the environment counts to countf
+    :param counts: the environment counts
+    :param countf: the file to write to
+    :return: None
+    """
+
+    with open(countf, 'w') as out:
+        for c in counts:
+            out.write("{}\t{}\n".format(c, counts[c]))
+
+
+
+
+def write_tsv(data, outputf):
     """
     Write the data to a
     :param data: the data to write
     :param outputf: the ouput file name
-    :param towrite: a set of those names to print. If none, all are printed
     :return:
     """
 
-    if towrite:
-        mgs = towrite
-    else:
-        mgs = data.keys()
+    mgs = data.keys()
     genomes = data[list(mgs)[0]].keys()
     with open(outputf, 'w') as out:
         out.write("\t{}\n".format("\t".join(mgs)))
@@ -126,12 +148,24 @@ if __name__ == '__main__':
     parser.add_argument('-f', help='tsv file of focus outputs', required=True)
     parser.add_argument('-e', help='environments file (probably patric_metadata_20180526_isolation_host_env.tsv', required=True)
     parser.add_argument('-n', help='number of metagenomes to include, default=1000', default=1000, type=int)
+    parser.add_argument('-m', help='minimum value to save a sample (0 - 90), default=90%', default=90, type=int)
+    parser.add_argument('-c', help='counts output file to write')
     parser.add_argument('-o', help='output file to write', required=True)
     parser.add_argument('-v', help='verbose output', action="store_true")
     args = parser.parse_args()
 
+    sys.stderr.write("Reading environments\n")
     envs = read_environments(args.e)
+    sys.stderr.write("Reading table\n")
     data = read_tsv(args.f, args.n)
-    envcounts, uniques = count_environments(envs, data)
+    sys.stderr.write("Finding uniques\n")
+    envcounts, uniques = count_environments(envs, data, args.m)
+    if args.c:
+        sys.stderr.write("Environment counts\n")
+        write_envs(envcounts, args.c)
+    sys.stderr.write("Filtering by counts\n")
+    data = filter_by_count(data, uniques)
+    sys.stderr.write("Deleting zeros\n")
     data = clean_zeros(data)
-    write_tsv(data, args.o, uniques)
+    sys.stderr.write("Output\n")
+    write_tsv(data, args.o)
