@@ -45,7 +45,9 @@ def read_tsv(fname, envs):
         for l in fin:
             p = l.strip().split("\t")
             thisenvironment = envs.get(p[0], "UNKNOWN")
-            for i,j in enumerate(p, start=1):
+            for i,j in enumerate(p):
+                if 0 == i:
+                    continue
                 if float(j) > 0:
                     srrenvs[srr[i]][thisenvironment] = srrenvs[srr[i]].get(thisenvironment, 0) + float(j)
     return srrenvs
