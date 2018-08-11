@@ -68,7 +68,7 @@ def write_json(data, outputf):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Add the environment")
     parser.add_argument('-f', help='tsv matrix from parse_focus.py', required=True)
-    parser.add_argument('-e', help='environments file from patric (probably patric_metadata_20180526_isolation_host_env.tsv', required=True)
+    parser.add_argument('-e', help='environments file from patric (probably patric_metadata_isolation_host_env.tsv', required=True)
     parser.add_argument('-o', help='json output file to write', required=True)
     parser.add_argument('-v', help='verbose output', action="store_true")
     args = parser.parse_args()
@@ -77,4 +77,5 @@ if __name__ == '__main__':
     envs = read_environments(args.e)
     sys.stderr.write("Reading table\n")
     data = read_tsv(args.f)
+    sys.stderr.write("Creating output\n")
     write_json(data, args.o)

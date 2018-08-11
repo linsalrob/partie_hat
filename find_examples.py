@@ -146,7 +146,7 @@ def write_tsv(data, outputf):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="Create a mini data set for development purposes")
     parser.add_argument('-f', help='tsv file of focus outputs', required=True)
-    parser.add_argument('-e', help='environments file (probably patric_metadata_20180526_isolation_host_env.tsv', required=True)
+    parser.add_argument('-e', help='environments file (probably patric_metadata_isolation_host_env.tsv', required=True)
     parser.add_argument('-n', help='number of metagenomes to include, default=1000', default=1000, type=int)
     parser.add_argument('-m', help='minimum value to save a sample (0 - 90), default=90%', default=90, type=int)
     parser.add_argument('-c', help='counts output file to write')

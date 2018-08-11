@@ -3,12 +3,12 @@
 
 ## Step 1. Create the FOCUS taxonomy file
 
-I started with our [spreadsheet of annotated PATRIC data](patric_metadata_20180526_environments.tsv) and kept only those rows for which we have an Environment annotated in a sheet called [patric metadata 20180526 environments only](patric_metadata_20180526_environments_only.tsv).
+I started with our [spreadsheet of annotated PATRIC data](patric_metadata_environments.tsv) and kept only those rows for which we have an Environment annotated in a sheet called [patric metadata environments only](patric_metadata_environments_only.tsv).
 
 Then, I selected just the first few columns of that spreadsheet to get the PATRIC ID, Organism name, taxonomy ID, etc. That way I'm working with a smaller spreadsheet for the rest of the work. This is a smaller file called [patric organisms](patric_organisms.tsv)
  
 ```
-cut -f 1,2,3,4 patric_metadata_20180526_environments_only.tsv > patric_organisms.tsv
+cut -f 1,2,3,4 patric_metadata_environments_only.tsv > patric_organisms.tsv
 ```
 
 Next, I add the taxnomy to that file using the `patric_add_taxonomy.py` script from the [Edwards Lab repo](https://github.com/linsalrob/EdwardsLab).
@@ -187,7 +187,7 @@ We can run this command:
 
 ```angular2html
 	python3 ~/GitHubs/partie_hat/find_examples.py \
-		-e patric_metadata_20180526_isolation_host_env.tsv \
+		-e patric_metadata_isolation_host_env.tsv \
 		-f metagenome_counts_20180625.txt \
 		-o dev_counts_sel.tsv \
 		-c dev_counts_sel_envcounts.json \
