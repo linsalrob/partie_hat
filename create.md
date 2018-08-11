@@ -209,7 +209,15 @@ The parameters here are:
 
 This command will create two files [dev_counts_sel](dev_counts_sel.tsv) and [dev_counts_sel_envcounts](dev_counts_sel_envcounts.json) that we are interested in. 
 
+# Create a json file with _all_ the data
 
+Now we can make a json output file that has all the environmental counts for the metagenomes:
+
+```angular2html
+python3 ~/GitHubs/partie_hat/parsed_focus_to_environment.py -f metagenome_counts.txt -e ~/GitHubs/partie_hat/patric_data/patric_metadata_20180526_isolation_host_env.tsv -o metagenome_envs.json
+```
+
+This creates a file that has the SRR ID, a tab, and then the json string with the environments.
 
 
 
