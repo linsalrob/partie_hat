@@ -25,44 +25,30 @@ def read_environments(envf):
                 data["PATRIC|{}".format(p[0])] = p[3]
     return data
 
-def read_tsv(fname):
+def read_tsv(fname, envs):
     """
-    Read the tsv file and return a dictionary
+    Read the tsv file we parsed from the focus output and return a dictionary of metagenomes and environment counts
+
+    The tsv has SRR IDs in the columns and each row is a genome.
     :param fname: file name to read
-    :return: dict of dicts
+    :param envs: the environment dict for each genome
+    :return: dict of metagenomes and their environments
     """
 
-    data = {}
+
+    srrenvs = {}
+
     with open(fname, 'r') as fin:
         l = fin.readline()
-        header = l.strip().split("\t")
-        data = {x : {} for x in header}
+        srr = l.strip().split("\t")
+        srrenvs = {x : {} for x in srr}
         for l in fin:
             p = l.strip().split("\t")
-            for i, j in enumerate(p):
-                if 0 == i:
-                    continue
-                data[header[i]][p[0]] = j
-    return data
-
-def count_environments(environ, data):
-    """
-    Count the environments each metagenome is present in
-    :param environ: the environments dict
-    :param data: the metagenomics data from read_tsv
-    :return: a hash of the metagenomes and the environments they are in
-    """
-
-    counts = {}
-    for m in data:
-        counts[m] = {}
-        for g in data[m]:
-            if g not in environ:
-                environ[g] = 'UNKNOWN'
-            if float(data[m][g]) > 0:
-                counts[m][environ[g]] = counts[m].get(environ[g], 0) + float(data[m][g])
-    return counts
-
+            thisenvironment = envs.get(p[0], "UNKNOWN")
+            for i,j in enumerate(p, start=1):
+                if float(j) > 0:
+                    srrenvs[srr[i]][thisenvironment] = srrenvs[srr[i]].get(thisenvironment, 0) + float(j)
+    return srrenvs
 
 
 def write_json(data, outputf):
@@ -90,8 +76,6 @@ if __name__ == '__main__':
     sys.stderr.write("Reading environments\n")
     envs = read_environments(args.e)
     sys.stderr.write("Reading table\n")
-    mgdata = read_tsv(args.f)
-    sys.stderr.write("Counting environments\n")
-    countdata = count_environments(envs, mgdata)
+    mgdata = read_tsv(args.f, envs)
     sys.stderr.write("Creating output\n")
-    write_json(countdata, args.o)
+    write_json(mgdata, args.o)
