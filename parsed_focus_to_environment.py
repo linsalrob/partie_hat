@@ -41,7 +41,7 @@ def read_tsv(fname, envs):
     with open(fname, 'r') as fin:
         l = fin.readline()
         srr = l.strip().split("\t")
-        srrenvs = {x : {} for x in srr}
+        srrenvs = {x : {} for x in srr[1:]}
         for l in fin:
             p = l.strip().split("\t")
             thisenvironment = envs.get(p[0], "UNKNOWN")
@@ -63,7 +63,7 @@ def write_json(data, outputf):
 
     with open(outputf, 'w') as out:
         for mg in data.keys():
-            out.write("{}\t{}".format(mg, data[mg]))
+            out.write("{}\t{}\n".format(mg, data[mg]))
 
 
 
