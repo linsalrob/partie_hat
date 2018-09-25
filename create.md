@@ -3,9 +3,9 @@
 
 ## Step 1. Create the FOCUS taxonomy file
 
-I started with our [spreadsheet of annotated PATRIC data](patric_metadata_environments.tsv) and kept only those rows for which we have an Environment annotated in a sheet called [patric metadata environments only](patric_metadata_environments_only.tsv).
+I started with our [spreadsheet of annotated PATRIC data](patric_data/patric_metadata_environments.tsv) and kept only those rows for which we have an Environment annotated in a sheet called [patric metadata environments only](patric_data/patric_metadata_environments_only.tsv).
 
-Then, I selected just the first few columns of that spreadsheet to get the PATRIC ID, Organism name, taxonomy ID, etc. That way I'm working with a smaller spreadsheet for the rest of the work. This is a smaller file called [patric organisms](patric_organisms.tsv)
+Then, I selected just the first few columns of that spreadsheet to get the PATRIC ID, Organism name, taxonomy ID, etc. That way I'm working with a smaller spreadsheet for the rest of the work. This is a smaller file called [patric organisms](patric_data/patric_organisms.tsv)
  
 ```
 cut -f 1,2,3,4 patric_metadata_environments_only.tsv > patric_organisms.tsv
