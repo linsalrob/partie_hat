@@ -59,10 +59,10 @@ We now have a file called `files_to_process.txt` that has one entry per line tha
 
 I want to process these in parallel since I have a machine with lots of memory and lots of cores. In this case, I'm going to run 30 jobs simultaneously. 
 
-Let's start by splitting the input file, `files_to_process.txt` into 30 smaller files. It's easier if each of those has a numeric file name, and we want to ensure that the files are split by number of lines, rather than by number of bytes, so that each file starts and ends with a complete command. We use the `split` command for that:
- 
+Let's start by splitting the input file, `files_to_process.txt` into 30 smaller files. It's easier if each of those has a numeric file name, and we want to ensure that the files are split by number of lines, rather than by number of bytes, so that each file starts and ends with a complete command. We use the `split` command for that. *Note:* When I ran this command there were  102130 lines in files_to_process.txt, and so to make 30 files, I need 3405 lines per file. You should adjust those numbers accordingly.
+
 ```
-split -d -l 2351 files_to_process.txt
+split -d -l 3405 files_to_process.txt
 ```
 
 This makes a series of files named x00, x01, x02, ... x28, x29.
@@ -72,7 +72,7 @@ Because we are going to process everything simultaneously it is much easier if w
 
  
 ```
-for JOB in $(seq 1 30); do
+for JOB in $(seq 10 29); do
 	mkdir $JOB;
 	mv x$JOB $JOB/input;
 	mkdir -p $JOB/output/db;
@@ -82,20 +82,24 @@ for JOB in $(seq 1 30); do
 done
 ```
 
-Notice that this did most of it, but there were a few errors. Split uses x00, x01, x02, ... and so we need to move those few files separately:
+Split uses x00, x01, x02, ... and so we need to move those few files separately:
 
 ```
-for JOB in $(seq 1 9); do mv x0$JOB $JOB/input; done
+for JOB in $(seq 1 9); do mkdir $JOB; mv x0$JOB $JOB/input; done
 ```
 
 and finally the last one (just because I counted from 1 not 0 earlier):
 
 ```
+mkdir 30
 mv x00 30/input
 ```
  
 
 Now that we're all set with an input file, an output directory, and the basis of the _k_-mer database in each directory, we can run the same command each time. Note that I use the ampersand here to put the job in the background, but because I'm doing that in a _for_ loop I use echo to carry on.
+
+
+**PLEASE NOTE**: The newest version of focus does not support making your own databases. We are working on a stand alone solution to this problem. Contact Rob before you run this next step.
 
 ```
 CWD=$PWD; for JOB in $(seq 1 30); do cd $JOB; python2.7 ~/GitHubs/FOCUS/focus.py -b output/ -d input > stdout 2> stderr & echo $JOB; cd $CWD; done
@@ -108,7 +112,7 @@ We now have 30 instances of focus building us databases!
 Once the processing is complete we need to combine the _k_-mer databases. Recall that each database has a header with the phylogenetic classification followed by the _k_-mer sequence, so we need to get that first. Then we can just concatenate the sequences from the partial databases. The order of the sequences in the databases doesn't matter.
 
 ```
-for K in 6 7 8; do echo $K; head -n 1 1/output/db/k$K > db/k$K; grep -hv ^Kingdom &#42;/output/db/k$K >> db/k${K}.full; done
+for K in 6 7 8; do echo $K; head -n 1 1/output/db/k$K > db/k$K.full; grep -hv ^Kingdom */output/db/k$K >> db/k${K}.full; done
 ```
 
 Then we need to filter out entries that are all zero. There is no point in keeping them in the database and we don't need to parse them each time we load it. These entries exist when the fasta file for the genome doesn't exist.
