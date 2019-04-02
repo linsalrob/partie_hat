@@ -72,9 +72,11 @@ Because we are going to process everything simultaneously it is much easier if w
 
  
 ```
-for JOB in $(seq 10 29); do
+for JOB in $(seq 1 30); do
 	mkdir $JOB;
-	mv x$JOB $JOB/input;
+	if [ -e x$JOB ]; then mv x$JOB $JOB/input;
+	elif [ -e x0$JOB ]; then mv x0$JOB $JOB/input; 
+	fi	
 	mkdir -p $JOB/output/db;
 	for K in 6 7 8; do
 		head -n 1 /usr/local/genome/focus/current/db/k$K > $JOB/output/db/k$K;
@@ -84,9 +86,6 @@ done
 
 Split uses x00, x01, x02, ... and so we need to move those few files separately:
 
-```
-for JOB in $(seq 1 9); do mkdir $JOB; mv x0$JOB $JOB/input; done
-```
 
 and finally the last one (just because I counted from 1 not 0 earlier):
 
