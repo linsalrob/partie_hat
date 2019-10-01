@@ -1,3 +1,5 @@
+[![DOI](https://www.zenodo.org/badge/135621927.svg)](https://www.zenodo.org/badge/latestdoi/135621927)
+
 # partie_hat
 
 partie_hat is the "High throughput automated typing for the partition engine", the "partition engine using humanly assessed tags", or the "highly accurate tags for the partition engine".
