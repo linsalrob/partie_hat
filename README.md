@@ -1,3 +1,4 @@
+[![Edwards Lab](https://img.shields.io/badge/Bioinformatics-EdwardsLab-03A9F4)](https://edwards.sdsu.edu/research)
 [![DOI](https://www.zenodo.org/badge/135621927.svg)](https://www.zenodo.org/badge/latestdoi/135621927)
 
 # partie_hat
